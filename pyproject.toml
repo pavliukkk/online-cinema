@@ -5,9 +5,6 @@ description = ""
 authors = [
     {name = "Petro",email = "petropavliuk12.05@gmail.com"}
 ]
-packages = [
-    { include = "online_cinema", from = "src" }
-]
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -22,6 +19,8 @@ dependencies = [
     "passlib (>=1.7.4,<2.0.0)"
 ]
 
+[tool.poetry]
+package-mode = false
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
