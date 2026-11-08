@@ -19,10 +19,11 @@ app.include_router(accounts_router, prefix=f"{api_version_prefix}/accounts", tag
 app.include_router(movie_router, prefix=f"{api_version_prefix}/theater", tags=["theater"])
 app.include_router(profiles_router, prefix=f"{api_version_prefix}/profile", tags=["profile"])
 
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(
-    request: Request,
-    exc: RequestValidationError,
+        request: Request,
+        exc: RequestValidationError,
 ):
     errors = []
 
