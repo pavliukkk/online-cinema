@@ -22,10 +22,9 @@ from database.models.movies import (
 )
 from database.validators import accounts as accounts_validators
 
-environment = os.getenv("ENVIRONMENT", "developing")
+from database.session_postgresql import (
+    get_postgresql_db_contextmanager as get_db_contextmanager,
+    get_postgresql_db as get_db
+)
 
-if environment == "testing":
-    from database.session_postgresql import (
-        get_postgresql_db_contextmanager as get_db_contextmanager,
-        get_postgresql_db as get_db
-    )
+environment = os.getenv("ENVIRONMENT", "developing")
