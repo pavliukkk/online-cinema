@@ -1,4 +1,4 @@
-FROM python:3.12
+FROM python:3.12-slim
 
 # Setting environment variables for Python
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -31,7 +31,6 @@ RUN poetry config virtualenvs.create false
 WORKDIR /usr/src/poetry
 
 # Install dependencies with Poetry
-RUN poetry lock
 RUN poetry install --no-root --only main
 
 # Selecting a working directory

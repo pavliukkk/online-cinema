@@ -28,3 +28,6 @@ jobs:
 
       - name: Run Flake8
         run: poetry run flake8 src/
+
+      - name: Run tests (test_integration)
+        run: poetry run pytest src/tests/test_integration

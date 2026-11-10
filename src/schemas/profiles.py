@@ -45,7 +45,10 @@ class ProfileRequestSchema(BaseModel):
     last_name: Annotated[Name, Form()]
     gender: Annotated[Gender, Form()]
     date_of_birth: Annotated[BirthDate, Form()]
-    info: Annotated[str, Form()]
+    info: Annotated[str, Form()] = Field(
+        default="",
+        validate_default=True,
+    )
     avatar: Annotated[Image, Form()]
 
     model_config = ConfigDict(arbitrary_types_allowed=True)

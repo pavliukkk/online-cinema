@@ -9,3 +9,4 @@ exclude = .git,
     .venv,
     venv,
     migrations
+    src/tests
