@@ -2,8 +2,6 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Form
 from fastapi.params import Depends
-from jose import jwt
-from pydantic import HttpUrl
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
