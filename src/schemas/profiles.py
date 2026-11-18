@@ -1,65 +1,136 @@
-import datetime
 from datetime import date
-from typing import Annotated
 
-from fastapi import UploadFile, Form
-from pydantic import BaseModel, field_validator, HttpUrl, Field, AfterValidator, BeforeValidator, ConfigDict
+from fastapi import File, Form, HTTPException, UploadFile
+from pydantic import BaseModel, HttpUrl, field_validator
 
-from database.models.accounts import GenderEnum
 from validation import (
-    validate_name,
-    validate_image,
+    validate_birth_date,
     validate_gender,
-    validate_birth_date
+    validate_image,
+    validate_name,
 )
 
 
-def check_name(name: str) -> str:
-    validate_name(name)
-    return name.lower()
+class ProfileCreateSchema(BaseModel):
+    first_name: str
+    last_name: str
+    gender: str
+    date_of_birth: date
+    info: str
+    avatar: UploadFile
 
+    @classmethod
+    def from_form(
+            cls,
+            first_name: str = Form(...),
+            last_name: str = Form(...),
+            gender: str = Form(...),
+            date_of_birth: date = Form(...),
+            info: str = Form(...),
+            avatar: UploadFile = File(...),
+    ) -> "ProfileCreateSchema":
+        return cls(
+            first_name=first_name,
+            last_name=last_name,
+            gender=gender,
+            date_of_birth=date_of_birth,
+            info=info,
+            avatar=avatar,
+        )
 
-def check_image(image: UploadFile) -> UploadFile:
-    validate_image(image)
-    return image
+    @field_validator("first_name", "last_name")
+    @classmethod
+    def validate_name_field(cls, name: str) -> str:
+        try:
+            validate_name(name)
+            return name.lower()
+        except ValueError as e:
+            raise HTTPException(
+                status_code=422,
+                detail=[
+                    {
+                        "type": "value_error",
+                        "loc": ["first_name" if "first_name" in name else "last_name"],
+                        "msg": str(e),
+                        "input": name,
+                    }
+                ],
+            )
 
+    @field_validator("avatar")
+    @classmethod
+    def validate_avatar(cls, avatar: UploadFile) -> UploadFile:
+        try:
+            validate_image(avatar)
+            return avatar
+        except ValueError as e:
+            raise HTTPException(
+                status_code=422,
+                detail=[
+                    {
+                        "type": "value_error",
+                        "loc": ["avatar"],
+                        "msg": str(e),
+                        "input": avatar.filename,
+                    }
+                ],
+            )
 
-def check_gender(gender: str) -> str:
-    validate_gender(gender)
-    return gender
+    @field_validator("gender")
+    @classmethod
+    def validate_gender(cls, gender: str) -> str:
+        try:
+            validate_gender(gender)
+            return gender
+        except ValueError as e:
+            raise HTTPException(
+                status_code=422,
+                detail=[
+                    {
+                        "type": "value_error",
+                        "loc": ["gender"],
+                        "msg": str(e),
+                        "input": gender,
+                    }
+                ],
+            )
 
-
-def check_birth_date(birth_date: date) -> date:
-    validate_birth_date(birth_date)
-    return birth_date
-
-
-Name = Annotated[str, Field(max_length=100), AfterValidator(check_name)]
-Gender = Annotated[GenderEnum, BeforeValidator(check_gender)]
-BirthDate = Annotated[datetime.date, AfterValidator(check_birth_date)]
-Image = Annotated[UploadFile, AfterValidator(check_image)]
-
-
-class ProfileRequestSchema(BaseModel):
-    first_name: Annotated[Name, Form()]
-    last_name: Annotated[Name, Form()]
-    gender: Annotated[Gender, Form()]
-    date_of_birth: Annotated[BirthDate, Form()]
-    info: Annotated[str, Form()] = Field(
-        default="",
-        validate_default=True,
-    )
-    avatar: Annotated[Image, Form()]
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    @field_validator("date_of_birth")
+    @classmethod
+    def validate_date_of_birth(cls, date_of_birth: date) -> date:
+        try:
+            validate_birth_date(date_of_birth)
+            return date_of_birth
+        except ValueError as e:
+            raise HTTPException(
+                status_code=422,
+                detail=[
+                    {
+                        "type": "value_error",
+                        "loc": ["date_of_birth"],
+                        "msg": str(e),
+                        "input": str(date_of_birth),
+                    }
+                ],
+            )
 
     @field_validator("info")
     @classmethod
-    def validate_info(cls, value: str):
-        value = value.strip()
-        if not value:
-            raise ValueError("Info field cannot be empty or contain only spaces.")
-        return value
+    def validate_info(cls, info: str) -> str:
+        cleaned_info = info.strip()
+        if not cleaned_info:
+            raise HTTPException(
+                status_code=422,
+                detail=[
+                    {
+                        "type": "value_error",
+                        "loc": ["info"],
+                        "msg": "Info field cannot be empty or contain only spaces.",
+                        "input": info,
+                    }
+                ],
+            )
+        return cleaned_info
 
 
 class ProfileResponseSchema(BaseModel):
@@ -67,9 +138,7 @@ class ProfileResponseSchema(BaseModel):
     user_id: int
     first_name: str
     last_name: str
-    gender: GenderEnum
-    date_of_birth: datetime.date
+    gender: str
+    date_of_birth: date
     info: str
     avatar: HttpUrl
-
-    model_config = ConfigDict(from_attributes=True)
