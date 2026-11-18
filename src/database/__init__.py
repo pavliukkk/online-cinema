@@ -14,15 +14,12 @@ from database.models.accounts import (
 )
 from database.models.movies import (
     MovieModel,
-    LanguageModel,
-    ActorModel,
     GenreModel,
-    CountryModel,
-    MoviesGenresModel,
-    ActorsMoviesModel,
-    MoviesLanguagesModel
+    CommentModel,
+    CertificationModel,
+    DirectorModel,
+    StarModel
 )
-from database.validators import accounts as accounts_validators
 from database.session_sqlite import reset_sqlite_database as reset_database
 
 environment = os.getenv("ENVIRONMENT", "developing")
