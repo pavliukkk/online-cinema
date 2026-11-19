@@ -80,7 +80,7 @@ jobs:
 
       - name: Run movies tests
         run: |
-          poetry run pytest src/tests/test_movie_references.py
+          poetry run pytest src/tests/test_movie_reference.py
 
   test-e2e:
     runs-on: ubuntu-latest
