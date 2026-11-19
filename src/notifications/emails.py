@@ -56,7 +56,7 @@ class EmailSender(EmailSenderInterface):
             raise BaseEmailError(f"Failed to send email to {recipient}: {error}")
 
     async def send_activation_email(self, email: str, activation_token: str) -> None:
-        subject = "Activate Your Account"
+        subject = "Account Activation"
         activation_link = "http://127.0.0.1:8000/api/v1/accounts/activate/"
         text_content = (
             f"Hello,\n\n"

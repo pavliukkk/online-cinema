@@ -78,7 +78,7 @@ async def delete_movie(
     return db_movie
 
 
-@router.post("/movies/{movie_id}/like")
+@router.post("/{movie_id}/like")
 async def like_movie(
     movie_id: int, movie_service: MovieService = Depends(get_movie_service)
 ):
@@ -86,7 +86,7 @@ async def like_movie(
     return {"message": "Movie liked successfully"}
 
 
-@router.post("/movies/{movie_id}/dislike")
+@router.post("/{movie_id}/dislike")
 async def dislike_movie(
     movie_id: int, movie_service: MovieService = Depends(get_movie_service)
 ):
@@ -94,7 +94,7 @@ async def dislike_movie(
     return {"message": "Movie disliked successfully"}
 
 
-@router.post("/movies/{movie_id}/rate")
+@router.post("/{movie_id}/rate")
 async def rate_movie(
     movie_id: int,
     user_rating: float,
@@ -106,7 +106,7 @@ async def rate_movie(
     return {"message": "Movie rated successfully"}
 
 
-@router.post("/movies/{movie_id}/leave_comment", response_model=CommentResponseSchema)
+@router.post("/{movie_id}/leave_comment", response_model=CommentResponseSchema)
 async def create_comment(
     comment: CommentCreateSchema,
     movie_id: int,
