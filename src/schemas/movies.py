@@ -75,6 +75,7 @@ class MovieCreateSchema(BaseCreateSchema):
 
     certification_id: int = Field(gt=0)
 
+
 class PaginatedMoviesResponse(BaseModel):
     movies: list[MovieSchema]
     prev_page: Optional[str]
