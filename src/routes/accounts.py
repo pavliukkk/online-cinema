@@ -120,7 +120,7 @@ async def register_user(
     response_model=UserLoginResponseSchema,
     summary="User Login",
     description="Authenticate a user and return access and refresh tokens.",
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_200_OK,
     responses={
         401: {
             "description": "Unauthorized - Invalid email or password.",
@@ -169,7 +169,7 @@ async def login_user(
 
     try:
         refresh_token = RefreshTokenModel.create(
-            user_id=user.id, days_valid=30, token=jwt_refresh_token
+            user_id=user.id, days_valid=7, token=jwt_refresh_token
         )
         db.add(refresh_token)
         await db.flush()
@@ -420,7 +420,7 @@ async def reset_password(
 
     if not token_record or token_record.token != data.token:
         if token_record:
-            await db.run_sync(lambda s: s.delete(token_record))
+            await db.delete(token_record)
             await db.commit()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email or token."
@@ -428,7 +428,7 @@ async def reset_password(
 
     expires_at = cast(datetime, token_record.expires_at).replace(tzinfo=timezone.utc)
     if expires_at < datetime.now(timezone.utc):
-        await db.run_sync(lambda s: s.delete(token_record))
+        await db.delete(token_record)
         await db.commit()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email or token."
@@ -436,7 +436,7 @@ async def reset_password(
 
     try:
         user.password = data.password
-        await db.run_sync(lambda s: s.delete(token_record))
+        await db.delete(token_record)
         await db.commit()
     except SQLAlchemyError:
         await db.rollback()

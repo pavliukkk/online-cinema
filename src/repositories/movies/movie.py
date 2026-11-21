@@ -101,14 +101,16 @@ class MovieRepository:
         movies = result.unique().scalars().all()
 
         total_query = await self.db.execute(
-            select(func.count()).select_from(MovieModel)
+            select(func.count()).select_from(
+                query.order_by(None).subquery()
+            )
         )
-        total = total_query.scalar()
+        total = total_query.scalar_one()
 
         return movies, total
 
     async def delete(self, movie_id: int):
-        movie = self.get(movie_id)
+        movie = await self.get(movie_id)
         if movie:
             await self.db.delete(movie)
             await self.db.commit()
@@ -132,21 +134,24 @@ class MovieRepository:
 
     async def rate_movie(self, movie_id: int, user_rating: float):
         movie = await self.db.get(MovieModel, movie_id)
+
         if movie is None:
             raise ValueError("Movie not found")
 
         if not (1 <= user_rating <= 10):
             raise ValueError("Rating must be between 1 and 10")
 
-        if movie.rate == 0:
-            movie.rate = user_rating
-        else:
-            current_rating = movie.rate
-            rate_count = movie.rate_count if movie.rate_count else 1
-            new_average = round(
-                ((current_rating * rate_count) + user_rating) / (rate_count + 1), 2
-            )
-            movie.rate = new_average
-            movie.rate_count = rate_count + 1
+        rate_count = movie.rate_count
+
+        new_average = round(
+            ((movie.rate * rate_count) + user_rating) / (rate_count + 1),
+            2,
+        )
+
+        movie.rate = new_average
+        movie.rate_count = rate_count + 1
 
         await self.db.commit()
+        await self.db.refresh(movie)
+
+        return movie

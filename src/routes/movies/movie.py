@@ -67,12 +67,12 @@ async def delete_movie(
         raise HTTPException(
             status_code=403, detail="You haven't appropriate permission"
         )
-    db_movie = await movie_service.delete_movie(movie_id)
     if await movie_service.cant_delete_movie(movie_id):
         raise HTTPException(
             status_code=400,
             detail="Cannot delete movie because it has been purchased by at least one user",
         )
+    db_movie = await movie_service.delete_movie(movie_id)
     if db_movie is None:
         raise HTTPException(status_code=404, detail="Movie not found")
     return db_movie

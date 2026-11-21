@@ -28,7 +28,6 @@ A RESTful API for an online cinema platform built with FastAPI. The application 
 
 ### User Profiles
 - User profile management.
-- Retrieve and update profile information.
 - Input data validation.
 
 ### Movies
@@ -177,6 +176,12 @@ poetry run flake8 src/
 ```
 
 ## Local Development
+
+Navigate to the src directory:
+
+```bash
+cd src
+```
 
 Start the development server:
 
