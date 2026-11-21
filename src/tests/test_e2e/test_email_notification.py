@@ -318,8 +318,8 @@ async def test_user_login(
         json=user_data,
     )
 
-    assert response.status_code == 201, (
-        f"Expected 201, got {response.status_code}: {response.text}"
+    assert response.status_code == 200, (
+        f"Expected 200, got {response.status_code}: {response.text}"
     )
 
     response_data = response.json()
@@ -505,8 +505,8 @@ async def test_user_login_with_new_password(
         json=user_data,
     )
 
-    assert response.status_code == 201, (
-        f"Expected 201, got {response.status_code}: {response.text}"
+    assert response.status_code == 200, (
+        f"Expected 200, got {response.status_code}: {response.text}"
     )
 
     response_data = response.json()

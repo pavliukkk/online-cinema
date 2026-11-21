@@ -2,7 +2,7 @@ from decimal import Decimal
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class BaseResponseSchema(BaseModel):
@@ -54,18 +54,26 @@ class MovieSchema(BaseModel):
 
 
 class MovieCreateSchema(BaseCreateSchema):
-    year: int
-    time: int
-    imdb: float
-    votes: int
-    meta_score: Optional[float] = None
-    gross: Optional[float] = None
+    year: int = Field(ge=1888, le=2100)
+    time: int = Field(gt=0)
+    imdb: float = Field(ge=0, le=10)
+    votes: int = Field(ge=0)
+
+    meta_score: Optional[float] = Field(
+        default=None,
+        ge=0,
+        le=100,
+    )
+    gross: Optional[float] = Field(default=None, ge=0)
+
     description: str
-    price: Decimal
-    genres: list[int]
-    stars: list[int]
-    directors: list[int]
-    certification_id: int
+    price: Decimal = Field(gt=0)
+
+    genres: list[int] = Field(min_length=1)
+    stars: list[int] = Field(min_length=1)
+    directors: list[int] = Field(min_length=1)
+
+    certification_id: int = Field(gt=0)
 
 
 class PaginatedMoviesResponse(BaseModel):
