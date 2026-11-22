@@ -285,9 +285,9 @@ async def activate_account(
     },
 )
 async def refresh_access_token(
-        token_data: TokenRefreshRequestSchema,
-        db: AsyncSession = Depends(get_db),
-        jwt_manager: JWTAuthManagerInterface = Depends(get_jwt_auth_manager),
+    token_data: TokenRefreshRequestSchema,
+    db: AsyncSession = Depends(get_db),
+    jwt_manager: JWTAuthManagerInterface = Depends(get_jwt_auth_manager),
 ) -> TokenRefreshResponseSchema:
     try:
         decoded_token = jwt_manager.decode_refresh_token(token_data.refresh_token)
@@ -301,6 +301,7 @@ async def refresh_access_token(
     stmt = select(RefreshTokenModel).filter_by(token=token_data.refresh_token)
     result = await db.execute(stmt)
     refresh_token_record = result.scalars().first()
+
     if not refresh_token_record:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -310,15 +311,35 @@ async def refresh_access_token(
     stmt = select(UserModel).filter_by(id=user_id)
     result = await db.execute(stmt)
     user = result.scalars().first()
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found.",
         )
 
-    new_access_token = jwt_manager.create_access_token({"user_id": user_id})
+    new_access_token = jwt_manager.create_access_token(
+        {"user_id": user_id}
+    )
+    new_refresh_token = jwt_manager.create_refresh_token(
+        {"user_id": user_id}
+    )
 
-    return TokenRefreshResponseSchema(access_token=new_access_token)
+    await db.delete(refresh_token_record)
+
+    new_refresh_token_record = RefreshTokenModel(
+        token=new_refresh_token,
+        user_id=user_id,
+    )
+
+    db.add(new_refresh_token_record)
+
+    await db.commit()
+
+    return TokenRefreshResponseSchema(
+        access_token=new_access_token,
+        refresh_token=new_refresh_token,
+    )
 
 
 @router.post(

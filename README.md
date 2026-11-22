@@ -177,16 +177,10 @@ poetry run flake8 src/
 
 ## Local Development
 
-Navigate to the src directory:
-
-```bash
-cd src
-```
-
 Start the development server:
 
 ```bash
-uvicorn src.main:app --reload
+cd src && uvicorn main:app --reload
 ```
 
 The `--reload` option automatically restarts the server when source files change.
