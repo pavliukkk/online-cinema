@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -94,18 +95,18 @@ class MovieRepository:
             elif sort_by == "popularity":
                 query = query.order_by(MovieModel.votes.desc())
 
-        offset = (page - 1) * page_size
-        query = query.offset(offset).limit(page_size)
-
-        result = await self.db.execute(query)
-        movies = result.unique().scalars().all()
-
         total_query = await self.db.execute(
             select(func.count()).select_from(
                 query.order_by(None).subquery()
             )
         )
         total = total_query.scalar_one()
+
+        offset = (page - 1) * page_size
+        query = query.offset(offset).limit(page_size)
+
+        result = await self.db.execute(query)
+        movies = result.unique().scalars().all()
 
         return movies, total
 
@@ -117,20 +118,28 @@ class MovieRepository:
         return movie
 
     async def increment_likes(self, movie_id: int):
-        await self.db.execute(
-            update(MovieModel)
-            .where(MovieModel.id == movie_id)
-            .values(likes=MovieModel.likes + 1)
-        )
-        await self.db.commit()
+        movie = await self.db.get(MovieModel, movie_id)
+        if movie:
+            await self.db.execute(
+                update(movie)
+                .where(movie.id == movie_id)
+                .values(likes=movie.likes + 1)
+            )
+            await self.db.commit()
+        else:
+            raise HTTPException(status_code=404, detail=f"Movie with id={movie_id} not found")
 
     async def increment_dislikes(self, movie_id: int):
-        await self.db.execute(
-            update(MovieModel)
-            .where(MovieModel.id == movie_id)
-            .values(dislikes=MovieModel.dislikes + 1)
-        )
-        await self.db.commit()
+        movie = await self.db.get(MovieModel, movie_id)
+        if movie:
+            await self.db.execute(
+                update(movie)
+                .where(movie.id == movie_id)
+                .values(likes=movie.dislikes + 1)
+            )
+            await self.db.commit()
+        else:
+            raise HTTPException(status_code=404, detail=f"Movie with id={movie_id} not found")
 
     async def rate_movie(self, movie_id: int, user_rating: float):
         movie = await self.db.get(MovieModel, movie_id)
