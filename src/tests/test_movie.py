@@ -5,12 +5,14 @@ from unittest.mock import AsyncMock
 
 from httpx import ASGITransport, AsyncClient
 
+from database import MovieModel
 from main import app as application
 
 from dependencies.movies import (
     get_movie_service,
     get_comment_service,
 )
+from repositories.movies.movie import MovieRepository
 
 
 @pytest.fixture
@@ -306,6 +308,130 @@ async def test_dislike_movie(client, movie_service):
     }
 
     movie_service.dislike_movie.assert_awaited_once_with(1)
+
+
+@pytest.mark.asyncio
+async def test_increment_likes(db_session):
+    movie = MovieModel(
+        name="Test Movie",
+        year=2024,
+        time=120,
+        imdb=8.5,
+        votes=1000,
+        description="Test description",
+        price=10.50,
+        certification_id=1,
+    )
+
+    db_session.add(movie)
+    await db_session.commit()
+    await db_session.refresh(movie)
+
+    repository = MovieRepository(db_session)
+
+    await repository.increment_likes(movie.id)
+
+    await db_session.refresh(movie)
+
+    assert movie.likes == 1
+
+
+@pytest.mark.asyncio
+async def test_increment_dislikes(db_session):
+    movie = MovieModel(
+        name="Test Movie",
+        year=2024,
+        time=120,
+        imdb=8.5,
+        votes=1000,
+        description="Test description",
+        price=10.50,
+        certification_id=1,
+    )
+
+    db_session.add(movie)
+    await db_session.commit()
+    await db_session.refresh(movie)
+
+    repository = MovieRepository(db_session)
+
+    await repository.increment_dislikes(movie.id)
+
+    await db_session.refresh(movie)
+
+    assert movie.dislikes == 1
+
+
+@pytest.mark.asyncio
+async def test_increment_likes_multiple_times(db_session):
+    movie = MovieModel(
+        name="Test Movie",
+        year=2024,
+        time=120,
+        imdb=8.5,
+        votes=1000,
+        description="Test description",
+        price=10.50,
+        certification_id=1,
+    )
+
+    db_session.add(movie)
+    await db_session.commit()
+    await db_session.refresh(movie)
+
+    repository = MovieRepository(db_session)
+
+    await repository.increment_likes(movie.id)
+    await repository.increment_likes(movie.id)
+    await repository.increment_likes(movie.id)
+
+    await db_session.refresh(movie)
+
+    assert movie.likes == 3
+
+
+@pytest.mark.asyncio
+async def test_increment_dislikes_multiple_times(db_session):
+    movie = MovieModel(
+        name="Test Movie",
+        year=2024,
+        time=120,
+        imdb=8.5,
+        votes=1000,
+        description="Test description",
+        price=10.50,
+        certification_id=1,
+    )
+
+    db_session.add(movie)
+    await db_session.commit()
+    await db_session.refresh(movie)
+
+    repository = MovieRepository(db_session)
+
+    await repository.increment_dislikes(movie.id)
+    await repository.increment_dislikes(movie.id)
+    await repository.increment_dislikes(movie.id)
+
+    await db_session.refresh(movie)
+
+    assert movie.dislikes == 3
+
+
+@pytest.mark.asyncio
+async def test_increment_likes_movie_not_found(db_session):
+    repository = MovieRepository(db_session)
+
+    with pytest.raises(Exception):
+        await repository.increment_likes(999999)
+
+
+@pytest.mark.asyncio
+async def test_increment_dislikes_movie_not_found(db_session):
+    repository = MovieRepository(db_session)
+
+    with pytest.raises(Exception):
+        await repository.increment_dislikes(999999)
 
 
 @pytest.mark.asyncio
