@@ -121,7 +121,7 @@ class MovieRepository:
         movie = await self.db.get(MovieModel, movie_id)
         if movie:
             await self.db.execute(
-                update(movie)
+                update(MovieModel)
                 .where(movie.id == movie_id)
                 .values(likes=movie.likes + 1)
             )
@@ -133,9 +133,9 @@ class MovieRepository:
         movie = await self.db.get(MovieModel, movie_id)
         if movie:
             await self.db.execute(
-                update(movie)
+                update(MovieModel)
                 .where(movie.id == movie_id)
-                .values(likes=movie.dislikes + 1)
+                .values(dislikes=movie.dislikes + 1)
             )
             await self.db.commit()
         else:
