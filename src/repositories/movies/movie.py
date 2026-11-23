@@ -118,28 +118,34 @@ class MovieRepository:
         return movie
 
     async def increment_likes(self, movie_id: int):
-        movie = await self.db.get(MovieModel, movie_id)
-        if movie:
-            await self.db.execute(
-                update(movie)
-                .where(movie.id == movie_id)
-                .values(likes=movie.likes + 1)
+        result = await self.db.execute(
+            update(MovieModel)
+            .where(MovieModel.id == movie_id)
+            .values(likes=MovieModel.likes + 1)
+        )
+
+        if result.rowcount == 0:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Movie with id={movie_id} not found",
             )
-            await self.db.commit()
-        else:
-            raise HTTPException(status_code=404, detail=f"Movie with id={movie_id} not found")
+
+        await self.db.commit()
 
     async def increment_dislikes(self, movie_id: int):
-        movie = await self.db.get(MovieModel, movie_id)
-        if movie:
-            await self.db.execute(
-                update(movie)
-                .where(movie.id == movie_id)
-                .values(likes=movie.dislikes + 1)
+        result = await self.db.execute(
+            update(MovieModel)
+            .where(MovieModel.id == movie_id)
+            .values(dislikes=MovieModel.dislikes + 1)
+        )
+
+        if result.rowcount == 0:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Movie with id={movie_id} not found",
             )
-            await self.db.commit()
-        else:
-            raise HTTPException(status_code=404, detail=f"Movie with id={movie_id} not found")
+
+        await self.db.commit()
 
     async def rate_movie(self, movie_id: int, user_rating: float):
         movie = await self.db.get(MovieModel, movie_id)
